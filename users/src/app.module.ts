@@ -16,6 +16,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         PG_USERNAME: Joi.string().required(),
         PG_PASSWORD: Joi.string().required(),
         PG_DATABASE: Joi.string().required(),
+        RABBITMQ_QUEUE: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRootAsync({

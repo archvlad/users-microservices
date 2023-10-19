@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  analytics:
+    container_name: analytics
+    build:
+      context: analytics
+      dockerfile: Dockerfile
+    env_file:
+      - analytics/.env
+    ports:
+      - 3100:3100
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+  users:
+    container_name: users
+    build:
+      context: users
+      dockerfile: Dockerfile
+    env_file:
+      - users/.env
+    ports:
+      - 3000:3000
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+  postgres:
+    image: postgres:10.5
+    container_name: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=app_db
+    ports:
+      - 5433:5432
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - 5673:5672
+      - 15673:15672
+    volumes:
+      - ./rabbitmq/data/:/var/lib/rabbitmq/
+      - ./rabbitmq/log/:/var/log/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
